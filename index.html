@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>new-tab — minimal</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap"
+            rel="stylesheet">
+        <style>
+    :root{
+      --bg:#0f1113;           
+      --panel:#121418;        
+      --text:#d9e1e8;         
+      --muted:#93a0ad;       
+      --accent:#8ab4f8;       
+      --border:#2a2f36;      
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:var(--bg); color:var(--text);
+      font:16px/1.5 "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing:.2px;
+      display:grid; place-items:start center; padding:28px;
+    }
+    .grid{
+      width:min(1200px, 96vw);
+      display:grid; gap:22px;
+      grid-template-columns: 1.1fr .9fr; 
+      grid-template-areas:
+        "time  image"
+        "weather todo"
+        "links links";
+    }
+    .card{ background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:18px 20px; box-shadow:0 0 0 1px rgba(0,0,0,.1) inset; }
+    .time{ grid-area:time }
+    .image{ grid-area:image; display:flex; justify-content:center; align-items:center; }
+    .image img{ max-width:100%; border-radius:10px; }
+    .weather{ grid-area:weather }
+    .todo{ grid-area:todo }
+    .links{ grid-area:links }
+
+    .title{ font-weight:600; text-transform:lowercase; font-size:14px; color:var(--muted); margin-bottom:10px; }
+    .clock{ font-size:56px; letter-spacing:1.5px; }
+    .date{ color:var(--muted); margin-top:8px; font-size:18px; }
+
+    .kvs{ display:grid; grid-template-columns:auto 1fr; row-gap:6px; column-gap:12px; font-size:14px; }
+    .kvs .k{ color:var(--muted) }
+
+    .weather .now{ display:flex; gap:16px; align-items:flex-end; margin-bottom:8px; }
+    .weather .temp{ font-size:34px; }
+    .weather .desc{ color:var(--muted); }
+    .weather .mini{ display:grid; grid-template-columns:repeat(3, auto); gap:18px; margin:10px 0 16px; color:var(--muted); font-size:14px; }
+    .weather .hours{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; font-size:14px; }
+    .weather .hour{ display:flex; justify-content:space-between; color:var(--muted); border-top:1px dotted var(--border); padding-top:6px; }
+
+    .todo .controls{ display:flex; gap:10px; margin-bottom:12px; }
+    .todo input[type=text]{ width:100%; background:#0d0f12; border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); outline:none; }
+    .todo button{ background:#10151c; color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px 12px; cursor:pointer; }
+    .todo button:hover{ border-color:#3a4048 }
+    .todo .list{ display:flex; flex-direction:column; gap:6px; }
+    .todo-item{ display:flex; gap:10px; align-items:flex-start; padding:6px 8px; border:1px solid transparent; border-radius:8px; }
+    .todo-item:hover{ border-color:var(--border); background:#0f1217; }
+    .todo .box{ width:20px; height:20px; display:inline-grid; place-items:center; border-radius:5px; border:1px solid var(--border); cursor:pointer; user-select:none; }
+    .todo .box[data-checked="true"]{ background:#101a14; border-color:#23412f; }
+    .todo .text{ flex:1; white-space:pre-wrap; word-break:break-word; }
+    .todo .text.done{ text-decoration:line-through; color:var(--muted); }
+    .todo .meta{ color:var(--muted); font-size:12px; }
+    .todo .actions{ display:flex; gap:10px; }
+    .todo .icon-btn{ cursor:pointer; user-select:none; border:1px solid var(--border); padding:4px 8px; border-radius:6px; }
+    .todo .icon-btn:hover{ border-color:#3a4048 }
+
+    .links .cols{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .links a{ display:block; text-decoration:none; color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px 12px; background:#0f1217; }
+    .links a:hover{ border-color:#3a4048 }
+
+    @media (max-width: 900px){
+      .grid{ grid-template-columns:1fr; grid-template-areas:
+        "time" "image" "weather" "todo" "links"; }
+      .clock{ font-size:42px }
+    }
+  </style>
+    </head>
+    <body>
+        <main class="grid">
+            <!-- DATETIME -->
+            <section class="card time">
+                <div class="title">datetime</div>
+                <div class="clock" id="clock">00:00:00</div>
+                <div class="date" id="date">—</div>
+            </section>
+            <!-- IMAGE -->
+            <section class="card image">
+                <img
+                    src="https://i.pinimg.com/originals/fd/87/86/fd878677523714b6760863cdc57ea0e1.gif"
+                    alt="gif" />
+            </section>
+
+            <!-- WEATHER -->
+            <section class="card weather">
+                <div class="title">weather</div>
+                <div class="now"><div class="temp" id="w-temp">—</div><div
+                        class="desc" id="w-desc">locating…</div></div>
+                <div class="mini">
+                    <div>humi <span id="w-humi">—</span></div>
+                    <div>wind <span id="w-wind">—</span></div>
+                    <div>prec <span id="w-prec">—</span></div>
+                </div>
+                <div class="hours" id="w-hours"></div>
+            </section>
+
+            <!-- TODO -->
+            <section class="card todo">
+                <div class="title">todoist</div>
+                <div class="controls">
+                    <input id="todo-input" type="text"
+                        placeholder="Add a task and press Enter…"
+                        autocomplete="off" />
+                    <button id="clear-done" title="Remove completed">clear
+                        ✓</button>
+                </div>
+                <div id="todo-count" class="meta"
+                    style="margin-bottom:8px"></div>
+                <div class="list" id="todo-list"></div>
+            </section>
+
+            <!-- LINKS -->
+            <section class="card links">
+                <div class="title">links</div>
+                <div class="cols" id="links"></div>
+            </section>
+        </main>
+
+        <script>
+  // ---------- utilities ----------
+  const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+  const $  = (sel, el=document) => el.querySelector(sel);
+  const clamp = (n,min,max)=>Math.min(Math.max(n,min),max);
+
+  // ---------- datetime ----------
+  function pad(n){return String(n).padStart(2,'0')} 
+  function renderClock(){
+    const now = new Date();
+    const hrs = now.getHours()%12 || 12;
+    const ampm = now.getHours()>=12 ? 'pm' : 'am';
+    const clock = `${pad(hrs)}:${pad(now.getMinutes())}:${pad(now.getSeconds())} ${ampm}`;
+    const date  = now.toLocaleDateString(undefined,{weekday:'long', year:'numeric', month:'long', day:'numeric'});
+    $('#clock').textContent = clock;
+    $('#date').textContent  = date;
+  }
+  renderClock(); setInterval(renderClock, 1000);
+
+  // ---------- weather (Open-Meteo) ----------
+  const WMAP = {
+    0:'clear', 1:'mainly clear', 2:'partly cloudy', 3:'cloudy',
+    45:'fog', 48:'rime fog', 51:'drizzle', 53:'drizzle', 55:'drizzle',
+    56:'freezing drizzle', 57:'freezing drizzle', 61:'rain', 63:'rain', 65:'rain',
+    66:'freezing rain', 67:'freezing rain', 71:'snow', 73:'snow', 75:'snow',
+    77:'snow grains', 80:'showers', 81:'showers', 82:'heavy showers',
+    85:'snow showers', 86:'snow showers', 95:'thunder', 96:'thunder + hail', 99:'thunder + hail'
+  };
+
+  async function getWeather(lat, lon){
+    const url = new URL('https://api.open-meteo.com/v1/forecast');
+    url.search = new URLSearchParams({
+      latitude: lat, longitude: lon, timezone: 'auto',
+      current: 'temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,weather_code',
+      hourly: 'temperature_2m,weather_code,precipitation_probability',
+      forecast_days: 1
+    });
+    const res = await fetch(url); const data = await res.json();
+    const c = data.current;
+    $('#w-temp').textContent = Math.round(c.temperature_2m) + '°C';
+    $('#w-desc').textContent = WMAP[c.weather_code] || '—';
+    $('#w-humi').textContent = c.relative_humidity_2m + '%';
+    $('#w-wind').textContent = Math.round(c.wind_speed_10m) + ' km/h';
+    const hh = data.hourly;
+    // build four entries ~ next hours
+    const out = [];
+    const nowIdx = hh.time.findIndex(t=> new Date(t) > new Date());
+    for(let i=0;i<4;i++){
+      const idx = clamp(nowIdx + i*3, 0, hh.time.length-1);
+      const t = new Date(hh.time[idx]);
+      const hour = t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      out.push(`<div class="hour"><span>${hour}</span><span>${Math.round(hh.temperature_2m[idx])}°</span></div>`);
+    }
+    $('#w-hours').innerHTML = out.join('');
+    // precip (approx from next hours probability)
+    const nextP = hh.precipitation_probability.slice(nowIdx, nowIdx+4).filter(x=>x!=null);
+    const pAvg = nextP.length ? Math.round(nextP.reduce((a,b)=>a+b,0)/nextP.length) : 0;
+    $('#w-prec').textContent = pAvg + '%';
+  }
+
+  function initWeather(){
+    if(!navigator.geolocation){
+      // Buenos Aires fallback
+      getWeather(-34.61, -58.38); return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => getWeather(pos.coords.latitude, pos.coords.longitude),
+      _err => getWeather(-34.61, -58.38),
+      {timeout:6000}
+    );
+  }
+  initWeather();
+
+  // ---------- todos (localStorage) ----------
+  const STORE_KEY = 'nt_todos_v1';
+  let todos = [];
+
+  function loadTodos(){
+    try{ todos = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); }
+    catch{ todos = []; }
+    renderTodos();
+  }
+  function saveTodos(){ localStorage.setItem(STORE_KEY, JSON.stringify(todos)); }
+
+  function addTodo(text){
+    const t = text.trim();
+    if(!t) return;
+    todos.unshift({ id: crypto.randomUUID(), text:t, done:false, ts: Date.now() });
+    saveTodos(); renderTodos();
+  }
+  function toggleTodo(id){
+    const t = todos.find(x=>x.id===id); if(!t) return; t.done = !t.done; saveTodos(); renderTodos();
+  }
+  function removeTodo(id){ todos = todos.filter(x=>x.id!==id); saveTodos(); renderTodos(); }
+  function clearDone(){ todos = todos.filter(t=>!t.done); saveTodos(); renderTodos(); }
+  function editTodo(id, newText){ const t = todos.find(x=>x.id===id); if(!t) return; t.text = newText.trim(); saveTodos(); renderTodos(); }
+
+  function renderTodos(){
+    const list = $('#todo-list');
+    if(!todos.length){ list.innerHTML = '<div class="meta">no tasks — add one ↑</div>'; $('#todo-count').textContent=''; return; }
+    const open = todos.filter(t=>!t.done).length;
+    $('#todo-count').textContent = `${todos.length} task${todos.length>1?'s':''} — ${open} open`;
+    list.innerHTML = todos.map(t=>{
+      const checked = t.done ? 'true' : 'false';
+      const txtCls = t.done ? 'text done' : 'text';
+      const date = new Date(t.ts).toLocaleDateString(undefined,{month:'short', day:'numeric'});
+      return `
+        <div class="todo-item" data-id="${t.id}">
+          <div class="box" data-checked="${checked}" title="toggle">${t.done?'✓':''}</div>
+          <div class="${txtCls}" contenteditable="true" spellcheck="false">${escapeHtml(t.text)}</div>
+          <div class="actions">
+            <div class="icon-btn" data-act="remove" title="delete">del</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[ch]));
+  }
+
+  // UI events
+  document.getElementById('todo-input').addEventListener('keydown', e=>{
+    if(e.key==='Enter') { addTodo(e.currentTarget.value); e.currentTarget.value=''; }
+  });
+  document.getElementById('clear-done').addEventListener('click', clearDone);
+  document.getElementById('todo-list').addEventListener('click', e=>{
+    const item = e.target.closest('.todo-item'); if(!item) return;
+    const id = item.dataset.id;
+    if(e.target.classList.contains('box')) toggleTodo(id);
+    if(e.target.dataset.act==='remove') removeTodo(id);
+  });
+  // Persist edits when contenteditable loses focus or Enter pressed
+  document.getElementById('todo-list').addEventListener('keydown', e=>{
+    if(e.key==='Enter' && e.target.classList.contains('text')){
+      e.preventDefault(); e.target.blur();
+    }
+  });
+  document.getElementById('todo-list').addEventListener('focusout', e=>{
+    if(e.target.classList.contains('text')){
+      const item = e.target.closest('.todo-item');
+      editTodo(item.dataset.id, e.target.textContent);
+    }
+  });
+
+  loadTodos();
+
+  // ---------- links ----------
+  const DEFAULT_LINKS = [
+    ['gmail','https://mail.google.com/'],
+    ['calendar','https://calendar.google.com/'],
+    ['onedrive','https://onedrive.live.com/'],
+    ['google','https://google.com.ar/'],
+    ['github','https://github.com/'],
+    ['itchio','https://itch.io/'],
+    ['leetcode','https://leetcode.com/'],
+    ['mangadex','https://mangadex.org/'],
+    ['crunchyroll','https://www.crunchyroll.com/es'],
+    ['chess','https://www.chess.com/home'],
+    ['pixil','https://www.pixilart.com/'],
+    ['chatgpt','https://chat.openai.com/'],
+    ['youtube','https://youtube.com/'],
+    ['reddit','https://reddit.com/'],
+    ['twitter','https://twitter.com/'],
+  ];
+  document.getElementById('links').innerHTML = DEFAULT_LINKS.map(([n,u])=>`<a href="${u}" target="_blank">&gt; ${n}</a>`).join('');
+
+  </script>
+    </body>
+</html>
